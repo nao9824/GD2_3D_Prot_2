@@ -46,6 +46,7 @@ public class Player : MonoBehaviour
                     rb.useGravity = false;
                     rb.velocity = Vector3.zero;
                     panel = hit.collider.GetComponent<Panel>();
+
                 }
             }
         }
@@ -61,9 +62,12 @@ public class Player : MonoBehaviour
             isGrounded = false;
         }
         rb.velocity = newvelo;
-
-        Quaternion toRotation = Quaternion.LookRotation(new Vector3(newvelo.normalized.x, 0, 0), Vector3.up);
-        rb.rotation = Quaternion.RotateTowards(rb.rotation, toRotation, 720 * Time.deltaTime);
+        if (newvelo.x != 0)
+        {
+            Debug.Log(newvelo);
+            Quaternion toRotation = Quaternion.LookRotation(new Vector3(newvelo.normalized.x, 0, 0), Vector3.up);
+            rb.rotation = Quaternion.RotateTowards(rb.rotation, toRotation, 720 * Time.deltaTime);
+        }
 
         Ray ray = new Ray(transform.position, Vector3.forward);
         Ray ray2 = new Ray(transform.position, Vector3.back);
@@ -77,8 +81,8 @@ public class Player : MonoBehaviour
 
         if (panel != null && panel.isInversion)
         {
-            rb.AddForce(-Physics.gravity * rb.mass);
-             Debug.Log("Ç≥Ç©Ç≥Ç‹Ç…Ç»Ç¡ÇΩÇÊ");
+           // rb.AddForce(-Physics.gravity * rb.mass);
+            Debug.Log("Ç≥Ç©Ç≥Ç‹Ç…Ç»Ç¡ÇΩÇÊ");
         }
     }
 
@@ -87,12 +91,14 @@ public class Player : MonoBehaviour
         isUpsideDown = !isUpsideDown;
         if (isUpsideDown)
         {
-            rb.AddForce(-Physics.gravity * rb.mass, ForceMode.Acceleration);
+            Physics.gravity *= -1;
+            //   rb.mass *= -1;//.AddForce(-Physics.gravity * rb.mass, ForceMode.Acceleration);
             Debug.Log("èdóÕîΩì]: Ç≥Ç©Ç≥Ç‹");
         }
         else
         {
-            rb.AddForce(Physics.gravity * rb.mass, ForceMode.Acceleration);
+            Physics.gravity *= -1;
+            //rb.mass *= -1;//rb.AddForce(Physics.gravity * rb.mass, ForceMode.Acceleration);
             Debug.Log("èdóÕîΩì]: å≥Ç…ñﬂÇ¡ÇΩ");
         }
     }

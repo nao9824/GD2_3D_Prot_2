@@ -9,6 +9,7 @@ public class Panel : MonoBehaviour
     private Quaternion targetRotation; // 目標の回転
     public bool rotating = false; // 回転中かどうかを判定するフラグ
     public bool isInversion = false; // 反転してるか
+    [SerializeField] CameraMove cameraMove;
 
     // Start is called before the first frame update
     void Start()
@@ -22,7 +23,7 @@ public class Panel : MonoBehaviour
         // 回転中の場合
         if (rotating)
         {
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            transform.parent.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
 
             // 目標の回転に到達したかどうかをチェック
             if (Quaternion.Angle(transform.rotation, targetRotation) < 0.1f)
@@ -30,12 +31,15 @@ public class Panel : MonoBehaviour
                 transform.rotation = targetRotation; // 目標の回転を正確に設定
                 Transform player = transform.Find("Player");
 
-                // 反転状態を更新
-                isInversion = !isInversion;
-                if (player != null)
+                if (cameraMove.isSwitch)
                 {
-                    Player playerScript = player.GetComponent<Player>();
-                    playerScript.InvertGravity();
+                    // 反転状態を更新
+                    isInversion = !isInversion;
+                    if (player != null)
+                    {
+                        Player playerScript = player.GetComponent<Player>();
+                        playerScript.InvertGravity();
+                    }
                 }
                 rotating = false; // 回転終了
             }

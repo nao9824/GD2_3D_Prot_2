@@ -29,26 +29,6 @@ public class PanelManager : MonoBehaviour
         panels.Sort((x,y)=> string.Compare(x.name,y.name));
 
         rlCountMax = panels.Count - 1;
-
-        // デバッグ用のログを追加
-        /*if (panels == null || panels.Count == 0)
-        {
-            Debug.LogError("Panel list is empty or not assigned.");
-        }
-        else
-        {
-            foreach (var pnl in panels)
-            {
-                if (pnl == null)
-                {
-                    Debug.LogError("A panel in the list is not assigned.");
-                }
-                else
-                {
-                    Debug.Log("Panel assigned correctly: " + pnl.gameObject.name);
-                }
-            }
-        }*/
     }
 
     // Update is called once per frame
