@@ -17,7 +17,7 @@ public class Player : MonoBehaviour
     //今いるパネルを取得
     RaycastHit hit;
     Panel panel;
-    private bool isUpsideDown = false; // さかさまの状態を判定するフラグ
+    [SerializeField]private bool isUpsideDown = false; // さかさまの状態を判定するフラグ
 
     // Start is called before the first frame update
     void Start()
@@ -42,7 +42,7 @@ public class Player : MonoBehaviour
             {
                 if (hit.collider.CompareTag("Panel"))
                 {
-                    transform.SetParent(hit.transform, true);
+                    transform.SetParent(hit.transform.parent, true);
                     rb.useGravity = false;
                     rb.velocity = Vector3.zero;
                     panel = hit.collider.GetComponent<Panel>();
@@ -66,7 +66,7 @@ public class Player : MonoBehaviour
         {
             Debug.Log(newvelo);
             Quaternion toRotation = Quaternion.LookRotation(new Vector3(newvelo.normalized.x, 0, 0), Vector3.up);
-            rb.rotation = Quaternion.RotateTowards(rb.rotation, toRotation, 720 * Time.deltaTime);
+            //rb.rotation = Quaternion.RotateTowards(rb.rotation, toRotation, 720 * Time.deltaTime);
         }
 
         Ray ray = new Ray(transform.position, Vector3.forward);

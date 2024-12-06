@@ -11,10 +11,15 @@ public class Panel : MonoBehaviour
     public bool isInversion = false; // ”½“]‚µ‚Ä‚é‚©
     [SerializeField] CameraMove cameraMove;
 
+    //‚Â
+    public bool isHave = false;
+    Vector3 scale;
+
     // Start is called before the first frame update
     void Start()
     {
         targetRotation = transform.rotation; // ‰Šú‚Ì‰ñ“]‚ğ•Û‘¶
+        scale = transform.localScale;
     }
 
     // Update is called once per frame
@@ -43,6 +48,15 @@ public class Panel : MonoBehaviour
                 }
                 rotating = false; // ‰ñ“]I—¹
             }
+        }
+
+        if (isHave)
+        {
+            transform.localScale = new Vector3(scale.x-0.1f, scale.y - 0.1f, scale.z - 0.1f);
+        }
+        else
+        {
+            transform.localScale = scale;
         }
     }
 
