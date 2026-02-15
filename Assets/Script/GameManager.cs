@@ -15,9 +15,9 @@ public class GameManager : MonoBehaviour
     void Update()
     {
 
-        if (Input.GetKeyDown(KeyCode.R))
+        if (Input.GetKeyDown(KeyCode.T))
         {
-            SceneManager.LoadScene("SampleScene");
+            SceneManager.LoadScene("Title");
         }
 
     }

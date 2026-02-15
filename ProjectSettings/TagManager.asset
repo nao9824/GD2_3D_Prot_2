@@ -7,6 +7,8 @@ TagManager:
   - Block
   - Panel
   - Arrow
+  - Death
+  - AudioManager
   layers:
   - Default
   - TransparentFX

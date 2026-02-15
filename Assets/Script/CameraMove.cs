@@ -18,18 +18,26 @@ public class CameraMove : MonoBehaviour
     float startTime;
     float journeyLength;
 
+    // サウンドエフェクト
+    [SerializeField] AudioClip switchSound; // Rボタン押下時のサウンド
+    private AudioSource audioSource;        // AudioSourceコンポーネント
+
     // Start is called before the first frame update
     void Start()
     {
         startPosition = transform.position;
         startRotation = transform.rotation;
+        audioSource = GetComponent<AudioSource>(); // AudioSourceコンポーネントを取得
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Q))
+        if (Input.GetButtonDown("Fire3") || // Rボタンに対応
+            Input.GetKeyDown(KeyCode.Q))
         {
+            //PlaySound(switchSound); // Rボタン押下時にサウンド再生
+
             if (!isSwitch)
             {
                 isSwitch = true;
@@ -45,7 +53,6 @@ public class CameraMove : MonoBehaviour
                 targetPosition = target.position;
                 targetRotation = target.rotation;
                 Camera.main.orthographic = true;
-
             }
 
             startPosition = transform.position;
@@ -75,6 +82,14 @@ public class CameraMove : MonoBehaviour
             {
                 isMove = false;
             }
+        }
+    }
+
+    void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
         }
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PanelManager : MonoBehaviour
 {
@@ -17,6 +18,18 @@ public class PanelManager : MonoBehaviour
 
     private Panel holdingPanel;
     private Panel targetPanel;
+    bool isHolding = false; // 持っている状態を表すフラグ
+
+    // スティックの入力感度を制御するための変数
+    private float stickThreshold = 0.5f;
+    private float stickCooldown = 0.4f;
+    private float lastStickInputTime = 0f;
+
+    // サウンドエフェクト
+    [SerializeField] AudioClip pickUpSound; // パネルを持った時のサウンド
+    [SerializeField] AudioClip rotateSound; // パネルを回転させた時のサウンド
+    [SerializeField] AudioClip swapSound;   // パネルを入れ替えた時のサウンド
+    private AudioSource audioSource;        // AudioSourceコンポーネント
 
     // Start is called before the first frame update
     void Start()
@@ -37,6 +50,7 @@ public class PanelManager : MonoBehaviour
         panels.Sort((x, y) => string.Compare(x.name, y.name));
 
         rlCountMax = panels.Count - 1;
+        audioSource = GetComponent<AudioSource>(); // AudioSourceコンポーネントを取得
     }
 
     // Update is called once per frame
@@ -51,67 +65,73 @@ public class PanelManager : MonoBehaviour
         {
             arrow.SetActive(true);
 
-            // 左右選ぶ
-            if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D))
+            // 左スティックの入力を検出
+            float stickInput = Input.GetAxis("Horizontal");
+
+            if (Time.time - lastStickInputTime >= stickCooldown)
             {
-                if (rlCount < rlCountMax)
+                if (stickInput > stickThreshold)
                 {
-                    rlCount++;
-                    arrow.transform.position = new Vector3(panels[rlCount].transform.position.x, arrow.transform.position.y, arrow.transform.position.z);
-                    SwapPanels();
+                    if (rlCount < rlCountMax)
+                    {
+                        rlCount++;
+                        arrow.transform.position = new Vector3(panels[rlCount].transform.position.x, arrow.transform.position.y, arrow.transform.position.z);
+                        SwapPanels();
+                        PlaySound(swapSound); // 入れ替え時にサウンド再生
+                        lastStickInputTime = Time.time;
+                    }
                 }
-            }
-            if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A))
-            {
-                if (rlCount > 0)
+                else if (stickInput < -stickThreshold)
                 {
-                    rlCount--;
-                    arrow.transform.position = new Vector3(panels[rlCount].transform.position.x, arrow.transform.position.y, arrow.transform.position.z);
-                    SwapPanels();
+                    if (rlCount > 0)
+                    {
+                        rlCount--;
+                        arrow.transform.position = new Vector3(panels[rlCount].transform.position.x, arrow.transform.position.y, arrow.transform.position.z);
+                        SwapPanels();
+                        PlaySound(swapSound); // 入れ替え時にサウンド再生
+                        lastStickInputTime = Time.time;
+                    }
                 }
             }
 
             // 回転
-            if (Input.GetKeyUp(KeyCode.Space) &&
+            if (Input.GetAxis("Jump") != 0 &&
                 !panels[rlCount].rotating &&
                 !panels[rlCount].isHave &&
                 haveTime <= 1.0f)
             {
-                panels[rlCount].rotateSet(panels[rlCount].transform.rotation * Quaternion.Euler(180, 0, 0)); // X方向に180度回転を追加
+                panels[rlCount].rotateSet(panels[rlCount].transform.rotation * Quaternion.Euler(180, 0, 0), panels[rlCount].transform.position); // X方向に180度回転を追加
                 panels[rlCount].rotating = true; // 回転開始
+                PlaySound(rotateSound); // 回転時にサウンド再生
             }
 
-            // 持つかどうかの判定
-            if (Input.GetKey(KeyCode.Space))
+            // Xボタンを押した時の処理
+            if (Input.GetKeyDown(KeyCode.JoystickButton2))
             {
-                haveTime += Time.deltaTime;
+                isHolding = !isHolding; // 持つ/離すの切り替え
+                if (isHolding)
+                {
+                    haveNum = rlCount;
+                    nowPanel1Pos = panels[haveNum].transform.position;
+                    holdingPanel = panels[haveNum];
+                    // 持つ処理
+                    panels[haveNum].isHave = true;
+                    nowPanel2Pos = panels[rlCount].transform.position;
+                    PlaySound(pickUpSound); // 持つ時にサウンド再生
+                }
+                else
+                {
+                    // 離す処理
+                    haveTime = 0.0f;
+                    panels[rlCount].isHave = false;
+                }
             }
-            if (Input.GetKeyUp(KeyCode.Space) ||
-                Input.GetKeyDown(KeyCode.RightArrow) ||
-                Input.GetKeyDown(KeyCode.D) ||
-                Input.GetKeyDown(KeyCode.LeftArrow) ||
-                Input.GetKeyDown(KeyCode.A))
+
+            // その他の持つ判定用の処理（必要に応じて保持）
+            if (!isHolding && (Input.GetKey(KeyCode.Space) || stickInput > stickThreshold || stickInput < -stickThreshold))
             {
                 haveTime = 0.0f;
                 panels[rlCount].isHave = false;
-            }
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                haveNum = rlCount;
-                nowPanel1Pos = panels[haveNum].transform.position;
-                holdingPanel = panels[haveNum];
-            }
-
-            // 持つ
-            if (Input.GetKey(KeyCode.Space) &&
-                haveTime > 1.0f)
-            {
-                panels[haveNum].isHave = true;
-
-                nowPanel2Pos = panels[rlCount].transform.position;
-
-               /* panels[rlCount].transform.position = nowPanel1Pos;
-                panels[haveNum].transform.position = nowPanel2Pos;*/
             }
         }
         else
@@ -134,6 +154,14 @@ public class PanelManager : MonoBehaviour
             int targetIndex = panels.IndexOf(targetPanel);
             panels[holdingIndex] = targetPanel;
             panels[targetIndex] = holdingPanel;
+        }
+    }
+
+    void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
         }
     }
 }

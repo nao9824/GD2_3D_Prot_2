@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
@@ -11,19 +12,48 @@ public class Player : MonoBehaviour
     float speed = 5.0f;
 
     //ジャンプ
-    float jumpForce = 20.0f; // ジャンプ力
+    float jumpForce = 15.0f; // ジャンプ力
     [SerializeField] bool isGrounded = true; // プレイヤーが地面に接しているかどうかを判定
+    [SerializeField] AudioClip jumpSE; // ジャンプのサウンドエフェクト
+    private AudioSource audioSource; // AudioSourceコンポーネント
 
     //今いるパネルを取得
     RaycastHit hit;
     Panel panel;
-    [SerializeField]private bool isUpsideDown = false; // さかさまの状態を判定するフラグ
+    [SerializeField] public bool isUpsideDown = false; // さかさまの状態を判定するフラグ
+
+    //リスポーン
+    Vector3 startPos;
+    Vector3 gravity;
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        isUpsideDown = false;
+
+        startPos = transform.position;
+
+        if (Physics.gravity.y >= 0)
+        {
+            Physics.gravity *= -1;
+        }
+        gravity = Physics.gravity;
+
+        // AudioSourceコンポーネントを取得
+        audioSource = GetComponent<AudioSource>();
+
+        // オーディオクリップが正しく設定されているか確認
+        if (jumpSE == null)
+        {
+            Debug.LogError("JumpSEオーディオクリップが設定されていません！");
+        }
+        if (audioSource == null)
+        {
+            Debug.LogError("AudioSourceコンポーネントが見つかりません！");
+        }
     }
+
 
     // Update is called once per frame
     void Update()
@@ -55,13 +85,23 @@ public class Player : MonoBehaviour
     private void Move()
     {
         Vector3 newvelo = new Vector3(0, rb.velocity.y, 0);
+
+        // 水平方向の移動
         newvelo.x = Input.GetAxis("Horizontal") * speed;
+
         if (Input.GetAxis("Jump") != 0 && isGrounded)
         {
-            newvelo.y = Input.GetAxis("Jump") * jumpForce;
+            // 重力反転に応じてジャンプ力の方向を調整
+            newvelo.y = isUpsideDown ? -jumpForce : jumpForce;
             isGrounded = false;
+
+            // ジャンプ時にSEを再生
+            Debug.Log("ジャンプサウンド再生");
+            audioSource.PlayOneShot(jumpSE);
         }
+
         rb.velocity = newvelo;
+
         if (newvelo.x != 0)
         {
             Debug.Log(newvelo);
@@ -81,10 +121,11 @@ public class Player : MonoBehaviour
 
         if (panel != null && panel.isInversion)
         {
-           // rb.AddForce(-Physics.gravity * rb.mass);
-            Debug.Log("さかさまになったよ");
+            // rb.AddForce(-Physics.gravity * rb.mass);
+            //Debug.Log("さかさまになったよ");
         }
     }
+
 
     public void InvertGravity()
     {
@@ -93,27 +134,35 @@ public class Player : MonoBehaviour
         {
             Physics.gravity *= -1;
             //   rb.mass *= -1;//.AddForce(-Physics.gravity * rb.mass, ForceMode.Acceleration);
-            Debug.Log("重力反転: さかさま");
+            //Debug.Log("重力反転: さかさま");
         }
         else
         {
             Physics.gravity *= -1;
             //rb.mass *= -1;//rb.AddForce(Physics.gravity * rb.mass, ForceMode.Acceleration);
-            Debug.Log("重力反転: 元に戻った");
+            //Debug.Log("重力反転: 元に戻った");
         }
     }
 
-    void Jump()
+    /*void Jump()
     {
         rb.velocity += Vector3.up * jumpForce;
         isGrounded = false;
     }
-
+*/
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Block"))
         {
             isGrounded = true;
+        }
+        if (collision.gameObject.CompareTag("Death"))
+        {
+            transform.position = startPos;
+            isUpsideDown = false;
+            isGrounded = true;
+            Physics.gravity = gravity;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
     }
 
@@ -124,5 +173,4 @@ public class Player : MonoBehaviour
         transform.rotation = invertedRotation;
         Debug.Log("プレイヤーが180度反転しました");
     }
-
 }
