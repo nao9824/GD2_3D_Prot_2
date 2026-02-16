@@ -42,6 +42,11 @@ public class StageChoiceManager : MonoBehaviour
     {
         horizontalInputTimer += Time.deltaTime;
 
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            SceneManager.LoadScene("Title");
+        }
+
         // ç∂âEëIÇ‘
         float horizontalInput = Input.GetAxis("Horizontal");
 

@@ -19,6 +19,9 @@ public class GameManager : MonoBehaviour
         {
             SceneManager.LoadScene("Title");
         }
-
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            SceneManager.LoadScene("StageChoice");
+        }
     }
 }

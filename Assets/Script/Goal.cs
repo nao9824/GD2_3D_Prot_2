@@ -1,57 +1,80 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class Goal : MonoBehaviour
 {
     int stageNumMax = 5;
-    [SerializeField]Player player;
+
+    [SerializeField] Player player;
+    [SerializeField] GameObject goalUI; // ゴール画像
+
+    bool isGoal = false;
+    string nextSceneName = "";
 
     public bool isAllClear = false;
 
+    [SerializeField] AudioSource goalSE;
 
-    // Start is called before the first frame update
+
     void Start()
     {
-
+        goalUI.SetActive(false);
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R))
+        // リトライ
+        if (!isGoal && Input.GetKeyDown(KeyCode.R))
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
             player.isUpsideDown = false;
+        }
+
+        // ゴール後 Aボタンで進む
+        if (isGoal && Input.GetButtonDown("Submit")) // Aボタン
+        {
+            SceneManager.LoadScene(nextSceneName);
         }
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
-        {
-            Debug.Log("ごーーーーーーる！！！");
+        if (!other.CompareTag("Player") || isGoal) return;
 
-            // 現在のシーンを取得
-            Scene nowScene = SceneManager.GetActiveScene();
-            for (int i = 0; i < stageNumMax; i++)
+        isGoal = true;
+
+        Debug.Log("ごーーーーーーる！！！");
+
+        // プレイヤー停止
+        player.enabled = false;
+
+        // UI表示
+        goalUI.SetActive(true);
+
+        // SE再生
+        goalSE.Play();
+
+
+        // 次のシーン決定
+        Scene nowScene = SceneManager.GetActiveScene();
+
+        for (int i = 1; i <= stageNumMax; i++)
+        {
+            if (nowScene.name == "Stage" + i)
             {
-                if (nowScene.name == "Stage" + stageNumMax)
+                if (i == stageNumMax)
                 {
                     isAllClear = true;
-                    SceneManager.LoadScene("StageChoice");
-                    
+                    nextSceneName = "StageChoice";
                 }
-
-                    if (nowScene.name == "Stage" + i)
+                else
                 {
-                    SceneManager.LoadScene("Stage" + (i + 1));
+                    nextSceneName = "Stage" + (i + 1);
                 }
+                break;
             }
         }
-
     }
 }

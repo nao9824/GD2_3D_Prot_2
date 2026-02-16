@@ -12,7 +12,7 @@ public class Player : MonoBehaviour
     float speed = 5.0f;
 
     //ジャンプ
-    float jumpForce = 15.0f; // ジャンプ力
+    float jumpForce = 12.0f; // ジャンプ力
     [SerializeField] bool isGrounded = true; // プレイヤーが地面に接しているかどうかを判定
     [SerializeField] AudioClip jumpSE; // ジャンプのサウンドエフェクト
     private AudioSource audioSource; // AudioSourceコンポーネント
@@ -101,6 +101,19 @@ public class Player : MonoBehaviour
         }
 
         rb.velocity = newvelo;
+
+        // 進行方向を向く（重力対応版）
+        Vector3 lookDir = new Vector3(rb.velocity.x, 0f, 0f);
+
+        if (lookDir.sqrMagnitude > 0.001f)
+        {
+            // 重力の逆方向がキャラの上方向
+            Vector3 characterUp = -Physics.gravity.normalized;
+
+            Quaternion targetRot = Quaternion.LookRotation(lookDir, characterUp);
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRot, 15f * Time.deltaTime));
+        }
+
 
         if (newvelo.x != 0)
         {
